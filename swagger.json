@@ -1,0 +1,82 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Simple Shop API", "version": "1.0.0" },
+  "servers": [{ "url": "http://localhost:3000" }],
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "List products",
+        "responses": { "200": { "description": "Products", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } } } } } }
+      }
+    },
+    "/cart": {
+      "get": {
+        "summary": "View cart",
+        "responses": { "200": { "description": "Cart", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Cart" } } } } }
+      },
+      "post": {
+        "summary": "Add product to cart",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": {
+          "type": "object", "required": ["productId"],
+          "properties": { "productId": { "type": "integer", "example": 1 }, "quantity": { "type": "integer", "minimum": 1, "default": 1, "example": 2 } }
+        } } } },
+        "responses": {
+          "201": { "description": "Updated cart", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Cart" } } } },
+          "400": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/cart/{productId}": {
+      "delete": {
+        "summary": "Remove product from cart",
+        "parameters": [{ "name": "productId", "in": "path", "required": true, "schema": { "type": "integer", "example": 1 } }],
+        "responses": { "200": { "description": "Updated cart", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Cart" } } } } }
+      }
+    },
+    "/checkout": {
+      "post": {
+        "summary": "Checkout cart (creates order, empties cart)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Customer" } } } },
+        "responses": {
+          "201": { "description": "Order", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Order" } } } },
+          "400": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/buy": {
+      "post": {
+        "summary": "Buy one product now (skips cart)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": {
+          "allOf": [
+            { "type": "object", "required": ["productId"], "properties": { "productId": { "type": "integer", "example": 2 }, "quantity": { "type": "integer", "minimum": 1, "default": 1, "example": 1 } } },
+            { "$ref": "#/components/schemas/Customer" }
+          ]
+        } } } },
+        "responses": {
+          "201": { "description": "Order", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Order" } } } },
+          "400": { "$ref": "#/components/responses/Error" },
+          "404": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "List orders",
+        "responses": { "200": { "description": "Orders", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Order" } } } } } }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "Error": { "description": "Error", "content": { "application/json": { "schema": { "type": "object", "properties": { "error": { "type": "string", "example": "Product not found" } } } } } }
+    },
+    "schemas": {
+      "Product": { "type": "object", "properties": { "id": { "type": "integer", "example": 1 }, "name": { "type": "string", "example": "Mouse" }, "price": { "type": "number", "example": 25 } } },
+      "CartItem": { "type": "object", "properties": { "productId": { "type": "integer", "example": 1 }, "name": { "type": "string", "example": "Mouse" }, "price": { "type": "number", "example": 25 }, "quantity": { "type": "integer", "example": 2 } } },
+      "Cart": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CartItem" } }, "total": { "type": "number", "example": 50 } } },
+      "Customer": { "type": "object", "required": ["name", "address"], "properties": { "name": { "type": "string", "example": "Usan" }, "address": { "type": "string", "example": "Kathmandu, Nepal" } } },
+      "Order": { "type": "object", "properties": { "id": { "type": "integer", "example": 1 }, "items": { "type": "array", "items": { "$ref": "#/components/schemas/CartItem" } }, "total": { "type": "number", "example": 50 }, "name": { "type": "string", "example": "Usan" }, "address": { "type": "string", "example": "Kathmandu, Nepal" } } }
+    }
+  }
+}
